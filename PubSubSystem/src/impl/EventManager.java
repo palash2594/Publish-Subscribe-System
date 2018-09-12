@@ -51,18 +51,16 @@ public class EventManager implements Runnable {
 			System.out.println("Waiting for CLient request");
 			Socket clientSocket = serverSocket.accept();
 			
+			System.out.println("Connection Established between Server and Client and Clients" + clientSocket.getInetAddress());
+			
 			outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 			inputStream = new ObjectInputStream(clientSocket.getInputStream());
 			
 			
 			ServerSocket getSocket = socketMap.get(i);
-			outputStream.writeObject(getSocket);
+			outputStream.writeObject(getSocket.getLocalPort());
 			threadPool.execute(runnableThreads[i]);
-			i++;
-			
-			if (i == numThreads) {
-				i = 0;
-			}
+			i = (i + 1) % numThreads;
 			
 		}
 	}
@@ -98,7 +96,7 @@ public class EventManager implements Runnable {
 	/*
 	 * show the list of subscriber for a specified topic
 	 */
-	private void showSubscribers(Topic topic) {
+	public void showSubscribers(Topic topic) {
 
 	}
 
