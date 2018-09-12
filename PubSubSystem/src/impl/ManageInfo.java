@@ -30,7 +30,7 @@ public class ManageInfo {
 		return Topics;
 	}
 	public void setTopics(List<String> topics) {
-		Topics = topics;
+		this.Topics = topics;
 	}
 	public Map<String, ArrayList<String>> getKeywords() {
 		return keywords;

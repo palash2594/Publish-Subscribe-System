@@ -1,56 +1,115 @@
 package impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import demo.*;
 
-public class EventManager{
-	
+public class EventManager implements Runnable {
+
+	private static ExecutorService threadPool;
+	private static Thread thread;
+	private static Runnable[] runnableThreads;
+	private static HashMap<Integer, ServerSocket> socketMap = new HashMap<>();
+	private static int numThreads;
+	private static ManageInfo manageData;
+	private static ServerSocket serverSocket;
+	private static ObjectOutputStream outputStream;
+	private static ObjectInputStream inputStream;
+
+	public EventManager(int numThreads) throws IOException {
+		this.numThreads = numThreads;
+		threadPool = Executors.newFixedThreadPool(numThreads);
+		thread = new Thread(this);
+		runnableThreads = new Runnable[numThreads];
+		manageData = new ManageInfo();
+
+		for (int i = 1; i <= numThreads; i++) {
+			socketMap.put(i, new ServerSocket(8000 + i));
+		}
+
+		for (int i = 0; i < numThreads; i++) {
+			runnableThreads[i] = new ManageThread(this, socketMap.get(i));
+		}
+
+		thread.start();
+	}
+
 	/*
 	 * Start the repo service
 	 */
-	private void startService() {
-		
+	private void startService() throws IOException {
+		serverSocket = new ServerSocket(5000);
+		int i = 0;
+		while (true) {
+			System.out.println("Waiting for CLient request");
+			Socket clientSocket = serverSocket.accept();
+			
+			outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+			inputStream = new ObjectInputStream(clientSocket.getInputStream());
+			
+			
+			ServerSocket getSocket = socketMap.get(i);
+			outputStream.writeObject(getSocket);
+			threadPool.execute(runnableThreads[i]);
+			i++;
+			
+			if (i == numThreads) {
+				i = 0;
+			}
+			
+		}
 	}
 
 	/*
-	 * notify all subscribers of new event 
+	 * notify all subscribers of new event
 	 */
-	private void notifySubscribers(Event event) {
-		
+	public void notifySubscribers(Event event) {
+
 	}
-	
+
 	/*
 	 * add new topic when received advertisement of new topic
 	 */
-	private void addTopic(Topic topic){
-		
+	public void addTopic(Topic topic) {
+
 	}
-	
+
 	/*
 	 * add subscriber to the internal list
 	 */
-	private void addSubscriber(){
-		
+	public void addSubscriber() {
+
 	}
-	
+
 	/*
 	 * remove subscriber from the list
 	 */
-	private void removeSubscriber(){
-		
+	public void removeSubscriber() {
+
 	}
-	
+
 	/*
 	 * show the list of subscriber for a specified topic
 	 */
-	private void showSubscribers(Topic topic){
-		
-	}
-	
-	
-	public static void main(String[] args) {
-		new EventManager().startService();
+	private void showSubscribers(Topic topic) {
+
 	}
 
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+
+	}
+
+	public static void main(String[] args) throws IOException {
+		new EventManager(5).startService();
+	}
 
 }
