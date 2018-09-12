@@ -13,15 +13,18 @@ public class ManageInfo {
 	
 	// class to store all general information
 	
-	public List<String> Topics = new ArrayList<String>();
-	public Map<String, ArrayList<String>> keywords = new HashMap<>();
-	public Queue<Event> events = new LinkedList<Event>();
-	public List<PubSubAgent> subscribers = new ArrayList<>();
-	public List<PubSubAgent> publishers = new ArrayList<>();
-	public Map<String, ArrayList<PubSubAgent>> topicsForSubcribers = new HashMap<>();
-	public Map<PubSubAgent, ArrayList<Event>> hasEvents = new HashMap<>();
-	public Map<Event, Integer> pendingEventsCount = new HashMap<>();
+	List<String> Topics = new ArrayList<String>();
+	Map<String, ArrayList<String>> keywords = new HashMap<>();
+	Queue<Event> events = new LinkedList<Event>();
+	List<PubSubAgent> subscribers = new ArrayList<>();
+	List<PubSubAgent> publishers = new ArrayList<>();
+	Map<String, ArrayList<PubSubAgent>> topicsForSubcribers = new HashMap<>();
+	Map<PubSubAgent, ArrayList<Event>> hasEvents = new HashMap<>();
+	Map<Event, Integer> pendingEventsCount = new HashMap<>();
 	
+	public ManageInfo() {
+		
+	}
 	
 	public List<String> getTopics() {
 		return Topics;
@@ -71,6 +74,7 @@ public class ManageInfo {
 	public void setPendingEventsCount(Map<Event, Integer> pendingEventsCount) {
 		this.pendingEventsCount = pendingEventsCount;
 	}
-
+	
+	
 
 }
