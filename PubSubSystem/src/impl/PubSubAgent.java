@@ -4,6 +4,7 @@ package impl;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.Scanner;
 
 import demo.*;
 
-public class PubSubAgent implements Publisher, Subscriber {
+public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	private Socket clientSocket;
 	private String ipAddress;
@@ -19,8 +20,11 @@ public class PubSubAgent implements Publisher, Subscriber {
 	private ObjectInputStream inputStream;
 	private int serverPort;
 	private static ArrayList<Topic> topicList;
+	private Thread thread;
 
 	public PubSubAgent(String ipAddress) throws UnknownHostException, IOException {
+
+		thread = new Thread(this);
 
 		this.ipAddress = ipAddress;
 
@@ -34,14 +38,20 @@ public class PubSubAgent implements Publisher, Subscriber {
 		}
 		disconnectFromSocket();
 
+		thread.start();
 	}
 
 	@Override
 	public void subscribe(Topic topic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
+		
+		System.out.println(clientSocket.getInetAddress());
+		System.out.println(clientSocket.getLocalAddress());
+		System.out.println(clientSocket.getLocalSocketAddress());
+		
 		outputStream.writeObject("Subscribe");
 		outputStream.writeObject(topic);
-		outputStream.writeObject(clientSocket.getInetAddress());
+		outputStream.writeObject(clientSocket.getLocalAddress());
 		try {
 			System.out.println(inputStream.readObject());
 		} catch (ClassNotFoundException e) {
@@ -111,7 +121,10 @@ public class PubSubAgent implements Publisher, Subscriber {
 	public void publish(Event event) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
 
+		System.out.println(event.getTopic());
+		
 		outputStream.writeObject("Publish");
+		outputStream.writeObject(event);
 		try {
 			System.out.println((String) inputStream.readObject());
 		} catch (ClassNotFoundException e) {
@@ -146,7 +159,9 @@ public class PubSubAgent implements Publisher, Subscriber {
 	@Override
 	public void advertise(Topic newTopic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
-
+		
+		System.out.println(newTopic);
+		
 		outputStream.writeObject("Topic");
 		outputStream.writeObject(newTopic);
 		try {
@@ -173,6 +188,33 @@ public class PubSubAgent implements Publisher, Subscriber {
 		clientSocket.close();
 	}
 
+	@Override
+	public void run() {
+		ServerSocket serverSocket;
+		try {
+			serverSocket = new ServerSocket(6000);
+			Socket clientSocket;
+			while (true) {
+				clientSocket = serverSocket.accept();
+				outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+				inputStream = new ObjectInputStream(clientSocket.getInputStream());
+
+//				Topic topic = (Topic) inputStream.readObject();
+//				System.out.println("New Topic '" + topic.getName() + "' advertised");
+
+				Event event = (Event) inputStream.readObject();
+				System.out.println(event);
+				outputStream.writeObject("Notification Deleiverd on " + serverSocket.getInetAddress());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public static void main(String[] args) throws UnknownHostException, IOException {
 
 		Scanner src = new Scanner(System.in);
@@ -191,20 +233,36 @@ public class PubSubAgent implements Publisher, Subscriber {
 
 			switch (ch) {
 			case 1:
-				System.out.println("Do you wish to see the list of topics yes / no");
+				System.out.println("Do you wish to see the list of topics yes / no: ");
 				String answer = src.next();
+
 				if (answer.equalsIgnoreCase("yes")) {
+					psa.getAllTopics();
 					psa.listAllTopics();
 				}
-				System.out.println("Enter topic, title and content");
-				String topic = src.next();
-				String title = src.nextLine();
-				String content = src.nextLine();
 
-				Topic t = new Topic();
-				t.setId(topic.hashCode());
-				t.setName(topic);
-				t.setKeywords(null);
+				System.out.println("Enter topic: ");
+				String topic = src.next().toLowerCase();
+				psa.getAllTopics();
+
+				Topic t = null;
+				for (Topic topic2 : topicList) {
+					if (topic2.getName().equalsIgnoreCase(topic)) {
+						t = topic2;
+						break;
+					}
+				}
+
+				if (t == null) {
+					System.out.println("Topic does not exist");
+					break;
+				}
+
+				System.out.println("Enter title: ");
+				String title = src.nextLine();
+
+				System.out.println("Enter Content: ");
+				String content = src.nextLine();
 
 				Event event = new Event();
 				event.setId(title.hashCode());
@@ -221,6 +279,7 @@ public class PubSubAgent implements Publisher, Subscriber {
 				String topicName = src.next().toLowerCase();
 
 				psa.getAllTopics();
+
 				for (Topic topic2 : topicList) {
 					if (topic2.getName().equalsIgnoreCase(topicName)) {
 						System.out.println("Topic '" + topicName + "' already exists");
@@ -264,9 +323,10 @@ public class PubSubAgent implements Publisher, Subscriber {
 				break;
 			case 4:
 				System.out.println("Do you wish to see the list of topics yes / no");
-				answer = src.next();
+				answer = src.next().toLowerCase();
+				psa.getAllTopics();
 				if (answer.equalsIgnoreCase("yes")) {
-					psa.getAllTopics();
+					psa.listAllTopics();
 				}
 
 				topic = src.next();
@@ -296,5 +356,4 @@ public class PubSubAgent implements Publisher, Subscriber {
 		}
 
 	}
-
 }

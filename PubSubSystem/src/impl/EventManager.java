@@ -9,6 +9,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,7 +20,7 @@ import demo.*;
 public class EventManager implements Runnable {
 
 	private static ExecutorService threadPool;
-	private static Thread thread;
+	private Thread thread;
 	private static Runnable[] runnableThreads;
 	private static HashMap<Integer, ServerSocket> socketMap = new HashMap<>();
 	private static int numThreads;
@@ -41,6 +44,7 @@ public class EventManager implements Runnable {
 			runnableThreads[i] = new ManageThread(this, socketMap.get(i));
 		}
 
+		System.out.println("Starts");
 		thread.start();
 	}
 
@@ -143,54 +147,92 @@ public class EventManager implements Runnable {
 	public void run() {
 
 		int port = 6000;
-//		while (!true) {
-//
-//			// To extract the list of subscribers to whom the event needs to be delivered
-//			Event event;
-//			ArrayList<InetAddress> subscriberList = new ArrayList<>();
-//			int count = 0;
-//			synchronized (manageData) {
-//				event = manageData.events.remove(0);
-//				subscriberList = manageData.subscriberForTopics.get(event.getTopic());
-//			}
-//			int i = 0;
-//			while (i < subscriberList.size()) {
-//				try {
-//					Socket socket = new Socket(subscriberList.get(i), port);
-//
-//					outputStream = new ObjectOutputStream(socket.getOutputStream());
-////					inputStream = new ObjectInputStream(socket.getInputStream());
-//
-//					outputStream.writeObject(event);
-//
-//					socket.close();
-//
-//				} catch (IOException e) {
-//					// If subscriber is offline, store the subscriber and event in the buffer
-//					synchronized (manageData) {
-//						if (manageData.hasEvents.containsKey(subscriberList.get(i))) {
-//							ArrayList<Event> events = manageData.hasEvents.get(subscriberList.get(i));
-//							events.add(event);
-//							manageData.hasEvents.put(subscriberList.get(i), events);
-//						} else {
-//							ArrayList<Event> events = new ArrayList<>();
-//							events.add(event);
-//							manageData.hasEvents.put(subscriberList.get(i), events);
-//						}
+
+		while (true) {
+			ArrayList<Event> events = new ArrayList<>();
+			ArrayList<Topic> topics = new ArrayList<>();
+			ArrayList<InetAddress> clients = new ArrayList<>();
+
+			synchronized (manageData) {
+				topics = manageData.topics;
+				events = manageData.events;
+				clients = manageData.addClients;
+			}
+
+//			while (topics.size() > 0) {
+//				int i = 0;
+//				while (i < clients.size()) {
+//					try {
 //						
+//						Socket socket = new Socket(clients.get(i++), port);
+//						outputStream = new ObjectOutputStream(socket.getOutputStream());
+//						inputStream = new ObjectInputStream(socket.getInputStream());
 //						
+//						outputStream.writeObject(topics.get(0));
+//						
+//						outputStream.close();
+//						inputStream.close();
+//						socket.close();
+//					} catch (Exception e) {
+//						// TODO: handle exception
 //					}
 //				}
-//				i++;
+//				topics.remove(0);
 //			}
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
 
+			while (events.size() > 0) {
+				int i = 0;
+				Topic topic = events.get(0).getTopic();
+				System.out.println(events);
+				System.out.println(topic.getName());
+
+				ArrayList<InetAddress> subscribers = new ArrayList<>();
+
+				synchronized (manageData) {
+					System.out.println(manageData.subscriberForTopics.size());
+//					System.out.println(manageData.subscriberForTopics.containsKey(topic));
+
+					HashMap<Topic, ArrayList<InetAddress>> subscriberTopics = manageData.subscriberForTopics;
+					
+					for (Map.Entry<Topic, ArrayList<InetAddress>> entry : subscriberTopics.entrySet()) {
+						if (entry.getKey().getName().equalsIgnoreCase(topic.getName())) {
+							subscribers = entry.getValue();
+						}
+					}
+				}
+
+				System.out.println(subscribers.get(0));
+
+				while (!subscribers.isEmpty()) {
+					try {
+						Socket socket = new Socket(subscribers.remove(0), port);
+						outputStream = new ObjectOutputStream(socket.getOutputStream());
+						inputStream = new ObjectInputStream(socket.getInputStream());
+						outputStream.writeObject(events.get(0));
+						try {
+							System.out.println((String) inputStream.readObject());
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						outputStream.close();
+						socket.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+				events.remove(0);
+			}
+
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
