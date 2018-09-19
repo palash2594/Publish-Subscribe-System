@@ -1,8 +1,9 @@
 package demo;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Event {
+public class Event implements Serializable{
 	private int id;
 	private Topic topic;
 	private String title;

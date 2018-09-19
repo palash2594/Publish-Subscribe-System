@@ -1,3 +1,4 @@
+
 package impl;
 
 import java.io.IOException;
@@ -23,39 +24,52 @@ public class ManageThread implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			Socket clientSocket = serverSocket.accept();
-			System.out.println("Connected with the server port: " + serverSocket.getLocalPort() + " with the client:"
-					+ clientSocket.getInetAddress() + " client port: " + clientSocket.getLocalPort());
+		while (true) {
+			try {
+				Socket clientSocket = serverSocket.accept();
+				System.out
+						.println("Connected with the server port: " + serverSocket.getLocalPort() + " with the client:"
+								+ clientSocket.getInetAddress() + " client port: " + clientSocket.getLocalPort());
 
-			outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-			inputStream = new ObjectInputStream(clientSocket.getInputStream());
+				outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+				inputStream = new ObjectInputStream(clientSocket.getInputStream());
 
-			switch ((String) inputStream.readObject()) {
-			case "Topic":
-				eventManager.addTopic((Topic) inputStream.readObject());
-				outputStream.writeObject("Topic Advertised Sucessfully");
-			case "Subscribe":
-				eventManager.addSubscriber((Topic) inputStream.readObject(), (InetAddress) inputStream.readObject());
-				outputStream.writeObject("You have susbcribed to the topic");
-			case "List all topics":
-				outputStream.writeObject(eventManager.getAllTopics());
-			case "Publish":
-				eventManager.notifySubscribers((Event) inputStream.readObject());
-				outputStream.writeObject("Event updated in the server");
-			case "UnSubscribe":
-				boolean flag = eventManager.removeSubscriber((Topic) inputStream.readObject(),
-						(InetAddress) inputStream.readObject());
-				if (flag)
-					outputStream.writeObject("Unsubscribed from the Topic");
-				else
-					outputStream.writeObject("You Haven't subscribed to the Topic");
+				switch ((String) inputStream.readObject()) {
+				case "Topic":
+					eventManager.addTopic((Topic) inputStream.readObject());
+					outputStream.writeObject("Topic Advertised Sucessfully");
+					break;
+				case "Subscribe":
+					eventManager.addSubscriber((Topic) inputStream.readObject(),
+							(InetAddress) inputStream.readObject());
+					outputStream.writeObject("You have susbcribed to the topic");
+					break;
+				case "AllTopics":
+					outputStream.writeObject(eventManager.getAllTopics());
+					break;
+				case "Publish":
+					eventManager.notifySubscribers((Event) inputStream.readObject());
+					outputStream.writeObject("Event updated in the server");
+					break;
+				case "UnSubscribe":
+					boolean flag = eventManager.removeSubscriber((Topic) inputStream.readObject(),
+							(InetAddress) inputStream.readObject());
+					if (flag)
+						outputStream.writeObject("Unsubscribed from the Topic");
+					else
+						outputStream.writeObject("You Haven't subscribed to the Topic");
+					break;
+				case "SubscribedTopics":
+					outputStream.writeObject(eventManager.listSubscribedTopics((InetAddress) inputStream.readObject()));
+					break;
+				case "UnSubscribeALL":
+					eventManager.removeSubscriber((InetAddress) inputStream.readObject());
+				}
+			} catch (IOException e) {
+				System.out.println("Connection Error with server: " + serverSocket.getLocalPort());
+			} catch (ClassNotFoundException e) {
+				System.out.println("Class Not Found Exception in Manage Thread");
 			}
-
-		} catch (IOException e) {
-			System.out.println("Connection Error with server: " + serverSocket.getLocalPort());
-		} catch (ClassNotFoundException e) {
-			System.out.println("Class Not Found Exception in Manage Thread");
 		}
 	}
 

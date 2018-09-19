@@ -1,3 +1,4 @@
+
 package impl;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class EventManager implements Runnable {
 		manageData = new ManageInfo();
 
 		for (int i = 0; i <= numThreads; i++) {
-			socketMap.put(i, new ServerSocket(8000 + i + 1));
+			socketMap.put(i, new ServerSocket(7000 + i + 1));
 		}
 
 		for (int i = 0; i < numThreads; i++) {
@@ -54,7 +55,7 @@ public class EventManager implements Runnable {
 			Socket clientSocket = serverSocket.accept();
 
 			System.out.println(
-					"Connection Established between Server and Client and Clients" + clientSocket.getInetAddress());
+					"Connection Established between Server and Client and Clients: " + clientSocket.getInetAddress());
 			synchronized (manageData) {
 				manageData.addClients(clientSocket.getInetAddress());
 			}
@@ -63,19 +64,11 @@ public class EventManager implements Runnable {
 			inputStream = new ObjectInputStream(clientSocket.getInputStream());
 
 			ServerSocket getSocket = socketMap.get(i);
-			System.out.println(getSocket.getLocalPort());
 			outputStream.writeObject(getSocket.getLocalPort());
 			threadPool.execute(runnableThreads[i]);
 			i = (i + 1) % numThreads;
 
 		}
-	}
-
-	/*
-	 * notify all subscribers of new event
-	 */
-	public void notifySubscribers(Event event) {
-
 	}
 
 	/*
@@ -87,13 +80,26 @@ public class EventManager implements Runnable {
 		}
 	}
 
+	public ArrayList<Topic> getAllTopics() {
+		synchronized (manageData) {
+			return manageData.topics;
+		}
+	}
+
 	/*
 	 * add subscriber to the internal list
 	 */
 	public void addSubscriber(Topic topic, InetAddress subscriber) {
 		synchronized (manageData) {
-			manageData.subscribers.add(subscriber);
+//			manageData.subscribers.add(subscriber);
+			manageData.setSubscribedTopics(topic, subscriber);
 			manageData.setSubscriberForTopics(topic, subscriber);
+		}
+	}
+
+	public ArrayList<Topic> listSubscribedTopics(InetAddress subscriber) {
+		synchronized (manageData) {
+			return manageData.getSubscribedTopics(subscriber);
 		}
 	}
 
@@ -102,7 +108,27 @@ public class EventManager implements Runnable {
 	 */
 	public boolean removeSubscriber(Topic topic, InetAddress unSubscriber) {
 		synchronized (manageData) {
-			return manageData.removeSubscriberFromTopics(topic, unSubscriber);
+			if (!manageData.isTopicSubscriberSync(topic, unSubscriber))
+				return false;
+
+			manageData.removeSubscribedTopics(topic, unSubscriber);
+			manageData.removeSubscriberFromTopics(topic, unSubscriber);
+			return true;
+		}
+	}
+
+	public boolean removeSubscriber(InetAddress unSubscriber) {
+		synchronized (manageData) {
+			return manageData.removeAllSubscribers(unSubscriber);
+		}
+	}
+
+	/*
+	 * notify all subscribers of new event
+	 */
+	public void notifySubscribers(Event event) {
+		synchronized (manageData) {
+			manageData.events.add(event);
 		}
 	}
 
@@ -113,16 +139,57 @@ public class EventManager implements Runnable {
 
 	}
 
-	public ArrayList<Topic> getAllTopics() {
-		synchronized (manageData) {
-			return manageData.getTopics();
-		}
-	}
-
 	@Override
 	public void run() {
 
 		int port = 6000;
+//		while (!true) {
+//
+//			// To extract the list of subscribers to whom the event needs to be delivered
+//			Event event;
+//			ArrayList<InetAddress> subscriberList = new ArrayList<>();
+//			int count = 0;
+//			synchronized (manageData) {
+//				event = manageData.events.remove(0);
+//				subscriberList = manageData.subscriberForTopics.get(event.getTopic());
+//			}
+//			int i = 0;
+//			while (i < subscriberList.size()) {
+//				try {
+//					Socket socket = new Socket(subscriberList.get(i), port);
+//
+//					outputStream = new ObjectOutputStream(socket.getOutputStream());
+////					inputStream = new ObjectInputStream(socket.getInputStream());
+//
+//					outputStream.writeObject(event);
+//
+//					socket.close();
+//
+//				} catch (IOException e) {
+//					// If subscriber is offline, store the subscriber and event in the buffer
+//					synchronized (manageData) {
+//						if (manageData.hasEvents.containsKey(subscriberList.get(i))) {
+//							ArrayList<Event> events = manageData.hasEvents.get(subscriberList.get(i));
+//							events.add(event);
+//							manageData.hasEvents.put(subscriberList.get(i), events);
+//						} else {
+//							ArrayList<Event> events = new ArrayList<>();
+//							events.add(event);
+//							manageData.hasEvents.put(subscriberList.get(i), events);
+//						}
+//						
+//						
+//					}
+//				}
+//				i++;
+//			}
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 
 	}
 
