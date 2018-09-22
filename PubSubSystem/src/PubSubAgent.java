@@ -44,11 +44,7 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 	@Override
 	public void subscribe(Topic topic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
-		
-		System.out.println(clientSocket.getInetAddress());
-		System.out.println(clientSocket.getLocalAddress());
-		System.out.println(clientSocket.getLocalSocketAddress());
-		
+
 		outputStream.writeObject("Subscribe");
 		outputStream.writeObject(topic);
 		outputStream.writeObject(clientSocket.getLocalAddress());
@@ -72,9 +68,12 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 	@Override
 	public void unsubscribe(Topic topic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
+
+		System.out.println(clientSocket.getLocalAddress());
+
 		outputStream.writeObject("UnSubscribe");
 		outputStream.writeObject(topic);
-		outputStream.writeObject(clientSocket.getInetAddress());
+		outputStream.writeObject(clientSocket.getLocalAddress());
 		try {
 			System.out.println(inputStream.readObject());
 		} catch (ClassNotFoundException e) {
@@ -89,8 +88,21 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		connectToSocket(serverPort);
 
 		outputStream.writeObject("UnSubscribeALL");
-		outputStream.writeObject(clientSocket.getInetAddress());
-
+		outputStream.writeObject(clientSocket.getLocalAddress());
+		
+		try {
+			ArrayList<Topic> topics = (ArrayList<Topic>) inputStream.readObject();
+			System.out.println("You have UnSubscribed to: ");
+			for (Topic topic : topicList) {
+				System.out.println(topic.getName());
+			}
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NullPointerException exception) {
+			System.out.println("You have not been subscribed to any topic");
+		}
+		
 		disconnectFromSocket();
 
 	}
@@ -100,7 +112,7 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		connectToSocket(serverPort);
 
 		outputStream.writeObject("SubscribedTopics");
-		outputStream.writeObject(clientSocket.getInetAddress());
+		outputStream.writeObject(clientSocket.getLocalAddress());
 
 		try {
 			ArrayList<Topic> subscribedTopics = (ArrayList<Topic>) inputStream.readObject();
@@ -122,7 +134,7 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		connectToSocket(serverPort);
 
 		System.out.println(event.getTopic());
-		
+
 		outputStream.writeObject("Publish");
 		outputStream.writeObject(event);
 		try {
@@ -159,9 +171,7 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 	@Override
 	public void advertise(Topic newTopic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
-		
-		System.out.println(newTopic);
-		
+
 		outputStream.writeObject("Topic");
 		outputStream.writeObject(newTopic);
 		try {
@@ -200,7 +210,7 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 				inputStream = new ObjectInputStream(clientSocket.getInputStream());
 
 				String type = (String) inputStream.readObject();
-				
+
 				if (type.equalsIgnoreCase("Topic")) {
 					Topic topic = (Topic) inputStream.readObject();
 					System.out.println("New Topic '" + topic.getName() + "' advertised");
@@ -208,13 +218,15 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 				} else {
 					Event event = (Event) inputStream.readObject();
 					System.out.println("Published " + event);
-					outputStream.writeObject("Delievered Event to the subscribed client: " + clientSocket.getLocalAddress());
+					outputStream.writeObject(
+							"Delievered Event to the subscribed client: " + clientSocket.getLocalAddress());
 				}
 			}
 		} catch (IOException e) {
 			System.out.println("Connection Exception while connecting with the server to receive notifications");
 		} catch (ClassNotFoundException e) {
-			System.out.println("Class Cast Exception in the while reading the input notification object from the server");
+			System.out
+					.println("Class Cast Exception in the while reading the input notification object from the server");
 		}
 	}
 
@@ -261,6 +273,7 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 					break;
 				}
 
+				src.nextLine();
 				System.out.println("Enter title: ");
 				String title = src.nextLine();
 
@@ -276,13 +289,14 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 				psa.publish(event);
 				break;
 			case 2:
-				System.out.println("Enter topic name and keywords");
-
 				t = new Topic();
+
+				System.out.print("Enter topic name: ");
 				String topicName = src.next().toLowerCase();
 
-				psa.getAllTopics();
+				System.out.println();
 
+				psa.getAllTopics();
 				for (Topic topic2 : topicList) {
 					if (topic2.getName().equalsIgnoreCase(topicName)) {
 						System.out.println("Topic '" + topicName + "' already exists");
@@ -300,19 +314,22 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 				}
 				break;
 			case 3:
-				System.out.println("Do you wish to see the list of topics yes / no");
-
+				System.out.print("Do you wish to see the list of topics Y / N: ");
 				answer = src.next();
-				psa.getAllTopics();
 
-				if (answer.equalsIgnoreCase("yes")) {
+				System.out.println();
+
+				psa.getAllTopics();
+				if (answer.equalsIgnoreCase("y")) {
 					psa.listAllTopics();
 				}
 
-				topic = src.next();
-
+				System.out.print("Enter the Topic Name: ");
+				topic = src.next().toLowerCase();
+				System.out.println();
+				
 				for (Topic topic1 : topicList) {
-					if (topic1.getName().equals(topic)) {
+					if (topic1.getName().equalsIgnoreCase(topic)) {
 						psa.subscribe(topic1);
 						flag = false;
 						break;
@@ -320,27 +337,31 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 				}
 
 				if (flag) {
-					System.out.println("Topic '" + answer + "' never exists in the database");
+					System.out.println("Topic '" + topic + "' never exists in the database");
 				}
 
 				break;
 			case 4:
-				System.out.println("Do you wish to see the list of topics yes / no");
+				System.out.print("Do you wish to see the list of topics Y / N: ");
 				answer = src.next().toLowerCase();
-				psa.getAllTopics();
-				if (answer.equalsIgnoreCase("yes")) {
-					psa.listAllTopics();
+				System.out.println();
+				
+				if (answer.equalsIgnoreCase("Y")) {
+					psa.listSubscribedTopics();
 				}
 
-				topic = src.next();
+				System.out.print("Enter Topic Name: ");
+				topic = src.next().toLowerCase();
+				System.out.println();
 
 				for (Topic topic1 : topicList) {
-					if (topic1.getName().equals(topic)) {
+					if (topic1.getName().equalsIgnoreCase(topic)) {
 						psa.unsubscribe(topic1);
 						flag = false;
 						break;
 					}
 				}
+				
 				if (flag)
 					System.out.println("No such topic exists");
 				break;

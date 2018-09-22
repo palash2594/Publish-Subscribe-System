@@ -4,28 +4,30 @@
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 //import demo.*;
 
 public class ManageInfo {
 
 	// All Clients
-	ArrayList<InetAddress> addClients = new ArrayList<>();
+	public static ArrayList<InetAddress> addClients = new ArrayList<>();
 
 	// Topics
-	ArrayList<Topic> topics = new ArrayList<>();
-	ArrayList<Topic> tempTopics = new ArrayList<>();
+	public static ArrayList<Topic> topics = new ArrayList<>();
+	public static ArrayList<Topic> tempTopics = new ArrayList<>();
 
 	// Events
-	ArrayList<Event> events = new ArrayList<>();
+	public static ArrayList<Event> events = new ArrayList<>();
 
 	// Subscribers
-	ArrayList<InetAddress> subscribers = new ArrayList<>();
-	HashMap<InetAddress, ArrayList<Topic>> topicListForSubscriber = new HashMap<>();
-	HashMap<Topic, ArrayList<InetAddress>> subscriberForTopics = new HashMap<>();
+	public static ArrayList<InetAddress> subscribers = new ArrayList<>();
+	public static HashMap<InetAddress, ArrayList<Topic>> topicListForSubscriber = new HashMap<>();
+	public static HashMap<Topic, ArrayList<InetAddress>> subscriberForTopics = new HashMap<>();
 
 	public ArrayList<Topic> getSubscribedTopics(InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
+			System.out.println("Inside getSubscribedTopics::" + subscriber);
 			return topicListForSubscriber.get(subscriber);
 		}
 		return null;
@@ -44,11 +46,20 @@ public class ManageInfo {
 	}
 
 	public void setSubscriberForTopics(Topic topic, InetAddress subscriber) {
-		if (subscriberForTopics.containsKey(topic)) {
-			ArrayList<InetAddress> ip = subscriberForTopics.get(topic);
-			ip.add(subscriber);
-			subscriberForTopics.put(topic, ip);
-		} else {
+
+		boolean flag = false;
+
+		for (Map.Entry<Topic, ArrayList<InetAddress>> entry : subscriberForTopics.entrySet()) {
+			if (entry.getKey().getName().equalsIgnoreCase(topic.getName())) {
+				ArrayList<InetAddress> ip = subscriberForTopics.get(entry.getKey());
+				ip.add(subscriber);
+				subscriberForTopics.put(entry.getKey(), ip);
+				flag = true;
+				break;
+			}
+		}
+
+		if (!flag) {
 			ArrayList<InetAddress> ip = new ArrayList<>();
 			ip.add(subscriber);
 			subscriberForTopics.put(topic, ip);
@@ -58,8 +69,11 @@ public class ManageInfo {
 	public boolean isTopicSubscriberSync(Topic topic, InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
 			ArrayList<Topic> topics = topicListForSubscriber.get(subscriber);
-			if (topics.indexOf(topic) >= 0)
-				return true;
+			for (Topic topic2 : topics) {
+				if (topic2.getName().equalsIgnoreCase(topic.getName())) {
+					return true;
+				}
+			}
 		}
 		return false;
 	}
@@ -67,51 +81,61 @@ public class ManageInfo {
 	public void removeSubscribedTopics(Topic topic, InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
 			ArrayList<Topic> topics = topicListForSubscriber.get(subscriber);
-			int index = topics.indexOf(topic);
+			int index = -1;
+			for (Topic topic2 : topics) {
+				if (topic2.getName().equalsIgnoreCase(topic.getName())) {
+					index = topics.indexOf(topic2);
+					break;
+				}
+			}
+
 			if (index >= 0) {
 				topics.remove(index);
 				topicListForSubscriber.put(subscriber, topics);
-//				return true;
 			}
 		}
-//		return false;
 	}
 
 	public void removeSubscriberFromTopics(Topic topic, InetAddress subscriber) {
-		if (subscriberForTopics.containsKey(topic)) {
-			ArrayList<InetAddress> ip = subscriberForTopics.get(topic);
-			int index = ip.indexOf(subscriber);
-			if (index >= 0) {
-				ip.remove(index);
-				subscriberForTopics.put(topic, ip);
-//				return true;
+		ArrayList<InetAddress> ip = new ArrayList<>();
+
+		for (Map.Entry<Topic, ArrayList<InetAddress>> entry : subscriberForTopics.entrySet()) {
+			if (entry.getKey().getName().equalsIgnoreCase(topic.getName())) {
+				ip = entry.getValue();
+				int index = ip.indexOf(subscriber);
+				if (index >= 0) {
+					ip.remove(index);
+					subscriberForTopics.put(entry.getKey(), ip);
+				}
+				break;
 			}
 		}
-//		return false;
 	}
 
-	public boolean removeAllSubscribers(InetAddress subscriber) {
-		boolean flag = false;
+	public ArrayList<Topic> removeAllSubscribers(InetAddress subscriber) {
+
+		ArrayList<Topic> topics = new ArrayList<>();
+
 		if (topicListForSubscriber.containsKey(subscriber)) {
+			topics = topicListForSubscriber.get(subscriber);
 			topicListForSubscriber.remove(subscriber);
-			flag = true;
 		}
-		if (!flag)
-			return flag;
 
-		for (int i = 0; i < subscriberForTopics.size(); i++) {
-			ArrayList<InetAddress> list = subscriberForTopics.get(i);
-			if (list.contains(subscriber)) {
-				list.remove(list.indexOf(subscriber));
+		for (Map.Entry<Topic, ArrayList<InetAddress>> entry : subscriberForTopics.entrySet()) {
+			ArrayList<InetAddress> ip = entry.getValue();
+			if (ip.contains(subscriber)) {
+				int index = ip.indexOf(subscriber);
+				ip.remove(index);
+				subscriberForTopics.put(entry.getKey(), ip);
 			}
 		}
 
-		return flag;
+		return topics;
 	}
 
-	// Buffer
-	HashMap<InetAddress, ArrayList<Event>> hasEvents = new HashMap<>();
-	ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
+	// Buffer for events
+	public static HashMap<InetAddress, ArrayList<Event>> hasEvents = new HashMap<>();
+	public static ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
 
 	public void setHasEvents(InetAddress subscriber, Event event) {
 		if (hasEvents.containsKey(subscriber)) {
@@ -124,7 +148,7 @@ public class ManageInfo {
 			hasEvents.put(subscriber, events);
 		}
 	}
-	
+
 	public void removeHasEvents(InetAddress subscriber, Event event) {
 		ArrayList<Event> events = hasEvents.get(subscriber);
 		for (Event e : events) {
@@ -132,6 +156,34 @@ public class ManageInfo {
 				int index = events.indexOf(e);
 				events.remove(index);
 				hasEvents.put(subscriber, events);
+				break;
+			}
+		}
+	}
+	
+	// Buffer for topics
+	
+	public static HashMap<InetAddress, ArrayList<Topic>> hasTopics = new HashMap<>();
+	public static ArrayList<InetAddress> activeClients= new ArrayList<>();
+	
+	public void setHasTopics(InetAddress client, Topic topic) {
+		if (hasTopics.containsKey(client)) {
+			ArrayList<Topic> topics = hasTopics.get(client);
+			topics.add(topic);
+			hasTopics.put(client, topics);
+		} else {
+			ArrayList<Topic> topics = new ArrayList<>();
+			topics.add(topic);
+			hasTopics.put(client, topics);
+		}
+	}
+	
+	public void removeHasTopics(InetAddress client, Topic topic) {
+		ArrayList<Topic> topics = hasTopics.get(client);
+		for (Topic t : topics) {
+			if (t.getName().equalsIgnoreCase(topic.getName())) {
+				topics.remove(topics.indexOf(t));
+				hasTopics.put(client, topics);
 				break;
 			}
 		}

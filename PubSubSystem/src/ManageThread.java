@@ -36,8 +36,7 @@ public class ManageThread implements Runnable {
 
 				switch ((String) inputStream.readObject()) {
 				case "Topic":
-					eventManager.addTopic((Topic) inputStream.readObject());
-					outputStream.writeObject("Topic Advertised Sucessfully");
+					outputStream.writeObject(eventManager.addTopic((Topic) inputStream.readObject()));
 					break;
 				case "Subscribe":
 					eventManager.addSubscriber((Topic) inputStream.readObject(),
@@ -63,7 +62,8 @@ public class ManageThread implements Runnable {
 					outputStream.writeObject(eventManager.listSubscribedTopics((InetAddress) inputStream.readObject()));
 					break;
 				case "UnSubscribeALL":
-					eventManager.removeSubscriber((InetAddress) inputStream.readObject());
+					outputStream.writeObject(eventManager.removeSubscriber((InetAddress) inputStream.readObject()));
+					break;
 				}
 			} catch (IOException e) {
 				System.out.println("Connection Error with server: " + serverSocket.getLocalPort());

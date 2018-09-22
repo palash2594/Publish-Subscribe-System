@@ -58,11 +58,15 @@ public class EventManager implements Runnable {
 
 			System.out.println(
 					"Connection Established between Server and Client and Clients: " + clientSocket.getInetAddress());
+			
 			synchronized (manageData) {
-
-				if (manageData.addClients.contains(clientSocket.getInetAddress())) {
+				if (!manageData.addClients.contains(clientSocket.getInetAddress())) {
 					manageData.addClients.add(clientSocket.getInetAddress());
 				} else {
+					if (manageData.hasTopics.containsKey(clientSocket.getInetAddress())) {
+						manageData.activeClients.add(clientSocket.getInetAddress());
+					}
+					
 					if (manageData.hasEvents.containsKey(clientSocket.getInetAddress())) {
 						manageData.activeSubscribers.add(clientSocket.getInetAddress());
 					}
@@ -83,11 +87,12 @@ public class EventManager implements Runnable {
 	/*
 	 * add new topic when received advertisement of new topic
 	 */
-	public void addTopic(Topic topic) {
+	public String addTopic(Topic topic) {
 		synchronized (manageData) {
 			manageData.topics.add(topic);
 			manageData.tempTopics.add(topic);
 		}
+		return "Topic '" + topic.getName() + "' Advertised sucessfully";
 	}
 
 	public ArrayList<Topic> getAllTopics() {
@@ -100,8 +105,8 @@ public class EventManager implements Runnable {
 	 * add subscriber to the internal list
 	 */
 	public void addSubscriber(Topic topic, InetAddress subscriber) {
+		System.out.println(subscriber);
 		synchronized (manageData) {
-//			manageData.subscribers.add(subscriber);
 			manageData.setSubscribedTopics(topic, subscriber);
 			manageData.setSubscriberForTopics(topic, subscriber);
 		}
@@ -118,8 +123,9 @@ public class EventManager implements Runnable {
 	 */
 	public boolean removeSubscriber(Topic topic, InetAddress unSubscriber) {
 		synchronized (manageData) {
-			if (!manageData.isTopicSubscriberSync(topic, unSubscriber))
+			if (!manageData.isTopicSubscriberSync(topic, unSubscriber)) {
 				return false;
+			}
 
 			manageData.removeSubscribedTopics(topic, unSubscriber);
 			manageData.removeSubscriberFromTopics(topic, unSubscriber);
@@ -129,7 +135,7 @@ public class EventManager implements Runnable {
 //	manageData.removeHasEvents(activeSubscribers.get(0), eventsToSend.get(sendCount));
 	
 
-	public boolean removeSubscriber(InetAddress unSubscriber) {
+	public ArrayList<Topic> removeSubscriber(InetAddress unSubscriber) {
 		synchronized (manageData) {
 			return manageData.removeAllSubscribers(unSubscriber);
 		}
@@ -161,15 +167,58 @@ public class EventManager implements Runnable {
 			ArrayList<Topic> topics = new ArrayList<>();
 			ArrayList<InetAddress> clients = new ArrayList<>();
 			ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
+			ArrayList<InetAddress> activeClients = new ArrayList<>();
 
 			synchronized (manageData) {
 				topics = manageData.tempTopics;
 				events = manageData.events;
 				clients = manageData.addClients;
 				activeSubscribers = manageData.activeSubscribers;
+				activeClients = manageData.activeClients;
 			}
+			
+			
+			while(!activeClients.isEmpty()) {
+				ArrayList<Topic> topicToSend = new ArrayList<>();
+				synchronized (manageData) {
+					topicToSend = manageData.hasTopics.get(activeClients.get(0));
+				}
+				
+				int sendCount = 0;
+				while (sendCount < topicToSend.size()) {
+					try {
+						Socket socket = new Socket(activeClients.get(0), port);
+						outputStream = new ObjectOutputStream(socket.getOutputStream());
+						inputStream = new ObjectInputStream(socket.getInputStream());
+						
+						outputStream.writeObject("Topic");
+						outputStream.writeObject(topicToSend.get(sendCount));
+						System.out.println((String) inputStream.readObject());
+						
+						synchronized (manageData) {
+							manageData.removeHasTopics(activeClients.get(0), topicToSend.get(sendCount));
+						}
+						
+						inputStream.close();
+						outputStream.close();
+						socket.close();
+						
+					} catch (IOException e) {
+						System.out.println("Connection Error with Client");
+						
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} finally {
+						sendCount++;
+//						topicToSend.remove(0);
+					}
+					
+				}
+				activeClients.remove(0);
+			}
+			
 
-//			int activeCount = 0;
 			while (!activeSubscribers.isEmpty()) {
 				ArrayList<Event> eventsToSend = new ArrayList<>();
 				synchronized (manageData) {
@@ -202,13 +251,13 @@ public class EventManager implements Runnable {
 						e.printStackTrace();
 					} finally {
 						sendCount++;
+//						eventsToSend.remove(0);
 					}
 				}
 				activeSubscribers.remove(0);
 			}
-
-			int topicCount = 0;
-			while (topicCount < topics.size()) {
+			
+			while (!topics.isEmpty()) {
 				int i = 0;
 				while (i < clients.size()) {
 					try {
@@ -219,10 +268,6 @@ public class EventManager implements Runnable {
 						outputStream.writeObject("Topic");
 						outputStream.writeObject(topics.get(0));
 						System.out.println((String) inputStream.readObject());
-						topics.remove(0);
-						synchronized (manageData) {
-							manageData.tempTopics.remove(0);
-						}
 
 						outputStream.close();
 						inputStream.close();
@@ -231,11 +276,21 @@ public class EventManager implements Runnable {
 					} catch (IOException e) {
 
 						System.out.println("Server unreachable at " + clients.get(i - 1).getHostAddress());
+						synchronized (manageData) {
+							manageData.setHasTopics(clients.get(i - 1), topics.get(0));
+						}
+						
 
 					} catch (ClassNotFoundException e) {
 
 						System.out.println("Class Cast Exception while sending TOPICS to clients");
 					}
+				}
+				
+				topics.remove(0);
+				synchronized (manageData) {
+					if (!manageData.tempTopics.isEmpty()) 
+						manageData.tempTopics.remove(0);
 				}
 			}
 
@@ -253,10 +308,13 @@ public class EventManager implements Runnable {
 					}
 				}
 
-				while (!subscribers.isEmpty()) {
+				int subscriberCount = 0;
+				System.out.println(subscribers.size());
+				while (subscriberCount < subscribers.size()) {
+					System.out.println("Sub size" + subscribers.size());
+					System.out.println("sub count" + subscriberCount);
 					try {
-
-						Socket socket = new Socket(subscribers.get(0), port);
+						Socket socket = new Socket(subscribers.get(subscriberCount), port);
 						outputStream = new ObjectOutputStream(socket.getOutputStream());
 						inputStream = new ObjectInputStream(socket.getInputStream());
 
@@ -269,20 +327,20 @@ public class EventManager implements Runnable {
 						socket.close();
 
 					} catch (IOException e) {
-						System.out.println("Server unreachable at " + subscribers.get(0).getHostAddress()
+						System.out.println("Server unreachable at " + subscribers.get(subscriberCount).getHostAddress()
 								+ " while sending the event notifications to the subscriber");
 
 						synchronized (manageData) {
-							manageData.setHasEvents(subscribers.get(0), events.get(0));
+							manageData.setHasEvents(subscribers.get(subscriberCount), events.get(0));
 						}
 
 					} catch (ClassNotFoundException e) {
 						System.out.println("Class Incompatible while acknowledging from subscribed client");
 					} finally {
-						subscribers.remove(0);
-						events.remove(0);
+						subscriberCount++;
 					}
 				}
+				events.remove(0);
 			}
 
 			try {
