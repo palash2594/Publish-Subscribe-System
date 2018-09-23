@@ -1,3 +1,4 @@
+
 /**
  * This is a server class and manages all the communications with the client.
  *
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 public class EventManager implements Runnable {
 
 	private static ExecutorService threadPool;
@@ -30,15 +30,15 @@ public class EventManager implements Runnable {
 	private ObjectOutputStream outputStream;
 	private ObjectInputStream inputStream;
 
-    /**
-     *
-     * EventManager constructer: Event Manager thread has been created, along with
-     * given number of runnable threads (5) each for ManageThread class.
-     * In each thread a different connection is established with different clients.
-     *
-     * @param numThreads the max number of runnable threads
-     * @throws IOException
-     */
+	/**
+	 *
+	 * EventManager constructer: Event Manager thread has been created, along with
+	 * given number of runnable threads (5) each for ManageThread class. In each
+	 * thread a different connection is established with different clients.
+	 *
+	 * @param numThreads the max number of runnable threads
+	 * @throws IOException
+	 */
 
 	public EventManager(int numThreads) throws IOException {
 		this.numThreads = numThreads;
@@ -55,13 +55,13 @@ public class EventManager implements Runnable {
 		thread.start();
 	}
 
-    /**
-     * Start the repo service.
-     * When a new client joins it establishes its connection with the server,
-     * then server passes the port number for a new thread and client re-establishes
-     *
-     * @throws IOException
-     */
+	/**
+	 * Start the repo service. When a new client joins it establishes its connection
+	 * with the server, then server passes the port number for a new thread and
+	 * client re-establishes
+	 *
+	 * @throws IOException
+	 */
 	private void startService() throws IOException {
 		serverSocket = new ServerSocket(5000);
 		int i = 0;
@@ -97,13 +97,13 @@ public class EventManager implements Runnable {
 		}
 	}
 
-    /**
-     * add new topic when received advertisement from a client(publisher), and add the topic to the
-     * server's data structure for topic.
-     *
-     * @param topic the topic object
-     * @return String -> success message.
-     */
+	/**
+	 * add new topic when received advertisement from a client(publisher), and add
+	 * the topic to the server's data structure for topic.
+	 *
+	 * @param topic the topic object
+	 * @return String -> success message.
+	 */
 	public String addTopic(Topic topic) {
 		synchronized (manageData) {
 			manageData.topics.add(topic);
@@ -112,25 +112,25 @@ public class EventManager implements Runnable {
 		return "Topic '" + topic.getName() + "' Advertised sucessfully";
 	}
 
-    /**
-     * to get the list of all topics available in the topic data structure
-     *
-     * @return ArrayList of all the topics
-     */
+	/**
+	 * to get the list of all topics available in the topic data structure
+	 *
+	 * @return ArrayList of all the topics
+	 */
 	public ArrayList<Topic> getAllTopics() {
 		synchronized (manageData) {
 			return manageData.topics;
 		}
 	}
 
-    /**
-     * to add the given client to the hashmap of topic for each subscriber as well as
-     * subscriber of each topic
-     *
-     * @param topic the topic instance
-     * @param subscriber the IP address of the subscriber
-     * @return String -> success message
-     */
+	/**
+	 * to add the given client to the hashmap of topic for each subscriber as well
+	 * as subscriber of each topic
+	 *
+	 * @param topic      the topic instance
+	 * @param subscriber the IP address of the subscriber
+	 * @return String -> success message
+	 */
 	public String addSubscriber(Topic topic, InetAddress subscriber) {
 
 		synchronized (manageData) {
@@ -138,16 +138,17 @@ public class EventManager implements Runnable {
 			manageData.setSubscriberForTopics(topic, subscriber);
 		}
 
-		return "You have susbcribed to the topic '" + topic.getName() +"'";
+		return "You have susbcribed to the topic '" + topic.getName() + "'";
 	}
 
-    /**
-     *
-     * to get the list of those topics that a particular client(subscriber) has been subscribed to.
-     *
-     * @param subscriber IP address of the subscriber.
-     * @return ArrayList of topics
-     */
+	/**
+	 *
+	 * to get the list of those topics that a particular client(subscriber) has been
+	 * subscribed to.
+	 *
+	 * @param subscriber IP address of the subscriber.
+	 * @return ArrayList of topics
+	 */
 
 	public ArrayList<Topic> listSubscribedTopics(InetAddress subscriber) {
 		synchronized (manageData) {
@@ -155,33 +156,39 @@ public class EventManager implements Runnable {
 		}
 	}
 
-    /**
-     * remove subscriber from the list of topics for subscriber as well as
-     * from the subscriber for topics
-     *
-     * @param topic instance of topic
-     * @param unSubscriber IP address of the subscriber
-     * @return true if the unsubscription is done successfully else false.
-     */
-	public boolean removeSubscriber(Topic topic, InetAddress unSubscriber) {
+	/**
+	 * remove subscriber from the list of topics for subscriber as well as from the
+	 * subscriber for topics
+	 *
+	 * @param topic        instance of topic
+	 * @param unSubscriber IP address of the subscriber
+	 * @return true if the unsubscription is done successfully else false.
+	 */
+	public String removeSubscriber(Topic topic, InetAddress unSubscriber) {
+		boolean flag = false;
 		synchronized (manageData) {
 			if (!manageData.isTopicSubscriberSync(topic, unSubscriber)) {
-				return false;
+				flag = false;
+			} else {
+				manageData.removeSubscribedTopics(topic, unSubscriber);
+				manageData.removeSubscriberFromTopics(topic, unSubscriber);
+				flag = true;
 			}
-
-			manageData.removeSubscribedTopics(topic, unSubscriber);
-			manageData.removeSubscriberFromTopics(topic, unSubscriber);
-			return true;
+			
+			if (flag)
+				return "Unsubscribed from the Topic '" + topic.getName() +"'";
+			else
+				return "You Haven't subscribed to the Topic";
 		}
 	}
 
-    /**
-     *
-     * to remove all the subscribed topics for a particular subscriber
-     *
-     * @param unSubscriber IP address of the subscriber
-     * @return ArrayList of the unsubscribed topic
-     */
+	/**
+	 *
+	 * to remove all the subscribed topics for a particular subscriber
+	 *
+	 * @param unSubscriber IP address of the subscriber
+	 * @return ArrayList of the unsubscribed topic
+	 */
 
 	public ArrayList<Topic> removeSubscriber(InetAddress unSubscriber) {
 		synchronized (manageData) {
@@ -189,25 +196,25 @@ public class EventManager implements Runnable {
 		}
 	}
 
-    /**
-     * notify all subscribers of new event
-     *
-     * @param event instance of an event
-     */
+	/**
+	 * notify all subscribers of new event
+	 *
+	 * @param event instance of an event
+	 */
 	public void notifySubscribers(Event event) {
 		synchronized (manageData) {
 			manageData.events.add(event);
 		}
 	}
 
-
-    /**
-     *
-     * When a new topic for advertisement, new event comes then a connection is established with
-     * the desired client and the topic/event is sent to the client.
-     * Also, if a user comes online and has pending messages then those messages will get delivered to the user.
-     */
-    @Override
+	/**
+	 *
+	 * When a new topic for advertisement, new event comes then a connection is
+	 * established with the desired client and the topic/event is sent to the
+	 * client. Also, if a user comes online and has pending messages then those
+	 * messages will get delivered to the user.
+	 */
+	@Override
 	public void run() {
 
 		int port = 6000;
@@ -219,7 +226,7 @@ public class EventManager implements Runnable {
 			ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
 			ArrayList<InetAddress> activeClients = new ArrayList<>();
 
-            // getting the data from ManageInfo class
+			// getting the data from ManageInfo class
 			synchronized (manageData) {
 				topics = manageData.tempTopics;
 				events = manageData.events;
@@ -228,15 +235,17 @@ public class EventManager implements Runnable {
 				activeClients = manageData.activeClients;
 			}
 
-            // to check if any client came online and hasn pending topics advertisemnt yet to be delivered
-			while(!activeClients.isEmpty()) {
+			// to check if any client came online and hasn pending topics advertisemnt yet
+			// to be delivered
+			while (!activeClients.isEmpty()) {
 				ArrayList<Topic> topicToSend = new ArrayList<>();
 				synchronized (manageData) {
 					topicToSend = manageData.hasTopics.get(activeClients.get(0));
 				}
 
-                // keeping the count of the number of topic advertisements to be delivered
+				// keeping the count of the number of topic advertisements to be delivered
 				int sendCount = 0;
+				System.out.println("Size: " + topicToSend.size());
 				while (sendCount < topicToSend.size()) {
 					try {
 						Socket socket = new Socket(activeClients.get(0), port);
@@ -256,27 +265,26 @@ public class EventManager implements Runnable {
 						socket.close();
 
 					} catch (IOException e) {
+						sendCount++;
 						System.out.println("Connection Error with Client");
-
+						break;
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					} finally {
-						sendCount++;
-//						topicToSend.remove(0);
 					}
-
 				}
 				activeClients.remove(0);
 			}
 
-            // to check if any client came online and has any pending message yet to be delivered
+			// to check if any client came online and has any pending message yet to be
+			// delivered
 			while (!activeSubscribers.isEmpty()) {
 				ArrayList<Event> eventsToSend = new ArrayList<>();
 				synchronized (manageData) {
 					eventsToSend = manageData.hasEvents.get(activeSubscribers.get(0));
 				}
 				int sendCount = 0;
+				System.out.println("Size: " + eventsToSend.size());
 				while (sendCount < eventsToSend.size()) {
 					try {
 						Socket socket = new Socket(activeSubscribers.get(0), port);
@@ -301,15 +309,13 @@ public class EventManager implements Runnable {
 					} catch (ClassNotFoundException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					} finally {
-						sendCount++;
-//						eventsToSend.remove(0);
-					}
+					} 
 				}
 				activeSubscribers.remove(0);
 			}
 
-            // checking if any new topic advertisement came, if yes, then send to all the clients (publishers and subscribers)
+			// checking if any new topic advertisement came, if yes, then send to all the
+			// clients (publishers and subscribers)
 			while (!topics.isEmpty()) {
 				int i = 0;
 				while (i < clients.size()) {
@@ -333,7 +339,6 @@ public class EventManager implements Runnable {
 							manageData.setHasTopics(clients.get(i - 1), topics.get(0));
 						}
 
-
 					} catch (ClassNotFoundException e) {
 
 						System.out.println("Class Cast Exception while sending TOPICS to clients");
@@ -347,8 +352,9 @@ public class EventManager implements Runnable {
 				}
 			}
 
-            // checking if any new event came, if yes, then send to all the subscribed clients
-            while (!events.isEmpty()) {
+			// checking if any new event came, if yes, then send to all the subscribed
+			// clients
+			while (!events.isEmpty()) {
 				String topicName = events.get(0).getTopic().getName();
 				ArrayList<InetAddress> subscribers = new ArrayList<>();
 
@@ -380,7 +386,9 @@ public class EventManager implements Runnable {
 					} catch (IOException e) {
 						System.out.println("Server unreachable at " + subscribers.get(subscriberCount).getHostAddress()
 								+ " while sending the event notifications to the subscriber");
-
+						
+						System.out.println(subscribers.get(subscriberCount));
+						System.out.println(events.get(0));
 						synchronized (manageData) {
 							manageData.setHasEvents(subscribers.get(subscriberCount), events.get(0));
 						}
@@ -394,7 +402,7 @@ public class EventManager implements Runnable {
 				events.remove(0);
 			}
 
-            // run this function in every one second
+			// run this function in every one second
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -405,8 +413,8 @@ public class EventManager implements Runnable {
 	}
 
 	/*
-	* The main function.
-	*/
+	 * The main function.
+	 */
 
 	public static void main(String[] args) throws IOException {
 		new EventManager(5).startService();

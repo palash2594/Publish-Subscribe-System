@@ -1,3 +1,4 @@
+
 /**
  * This class interacts with clients on behalf of the server, with the available ports.
  * 
@@ -12,14 +13,13 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 public class ManageThread implements Runnable {
 
 	private EventManager eventManager;
 	private ServerSocket serverSocket;
 	private ObjectOutputStream outputStream;
 	private ObjectInputStream inputStream;
-	
+
 	/**
 	 * Class constructor
 	 * 
@@ -31,7 +31,7 @@ public class ManageThread implements Runnable {
 		this.eventManager = eventManager;
 		this.serverSocket = serverSocket;
 	}
-	
+
 	/**
 	 * starts the thread and listens to clients requests
 	 */
@@ -64,12 +64,8 @@ public class ManageThread implements Runnable {
 					outputStream.writeObject("Event updated in the server");
 					break;
 				case "UnSubscribe":
-					boolean flag = eventManager.removeSubscriber((Topic) inputStream.readObject(),
-							(InetAddress) inputStream.readObject());
-					if (flag)
-						outputStream.writeObject("Unsubscribed from the Topic");
-					else
-						outputStream.writeObject("You Haven't subscribed to the Topic");
+					outputStream.writeObject(eventManager.removeSubscriber((Topic) inputStream.readObject(),
+							(InetAddress) inputStream.readObject()));
 					break;
 				case "SubscribedTopics":
 					outputStream.writeObject(eventManager.listSubscribedTopics((InetAddress) inputStream.readObject()));

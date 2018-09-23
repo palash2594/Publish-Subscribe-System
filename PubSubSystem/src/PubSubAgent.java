@@ -1,3 +1,4 @@
+
 /**
  * This is a client (publisher/ subscriber) class, where all the activities happen
  *
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-
 public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	private Socket clientSocket;
@@ -27,15 +27,16 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 	private static ArrayList<Topic> subscribedTopics;
 	private Thread thread;
 
-    /**
-     *
-     * PubSubAgent constructor: First establishes connection to the server is established, then after receiving
-     * the new port number the connection is re-established with the ManageThread class.
-     *
-     * @param ipAddress the IP address of the server
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 *
+	 * PubSubAgent constructor: First establishes connection to the server is
+	 * established, then after receiving the new port number the connection is
+	 * re-established with the ManageThread class.
+	 *
+	 * @param ipAddress the IP address of the server
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	public PubSubAgent(String ipAddress) throws UnknownHostException, IOException {
 
@@ -53,13 +54,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		thread.start();
 	}
 
-    /**
-     * to subscribe to a given topic
-     *
-     * @param topic instance of the topic
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * to subscribe to a given topic
+	 *
+	 * @param topic instance of the topic
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@Override
 	public void subscribe(Topic topic) throws UnknownHostException, IOException {
@@ -77,13 +78,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
-    /**
-     * to unsubscribe from a given topic
-     *
-     * @param topic instance of the topic
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * to unsubscribe from a given topic
+	 *
+	 * @param topic instance of the topic
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 	@Override
 	public void unsubscribe(Topic topic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
@@ -100,12 +101,12 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
-    /**
-     * to unsubscribe from all the subscribed topics
-     *
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * to unsubscribe from all the subscribed topics
+	 *
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -129,18 +130,18 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		}
 
 		disconnectFromSocket();
 
 	}
 
-    /**
-     * lists all the subscribed for a particular subscriber
-     *
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * lists all the subscribed for a particular subscriber
+	 *
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -159,13 +160,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
-    /**
-     * to publish an event
-     *
-     * @param event instance of an event
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * to publish an event
+	 *
+	 * @param event instance of an event
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@Override
 	public void publish(Event event) throws UnknownHostException, IOException {
@@ -183,12 +184,12 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
-    /**
-     * to get the list of all available topics
-     *
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * to get the list of all available topics
+	 *
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@SuppressWarnings("unchecked")
 	public void getAllTopics() throws UnknownHostException, IOException {
@@ -212,12 +213,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		}
 	}
 
-    /**
-     * to advertise a new topic all the subscribers
-     * @param newTopic
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * to advertise a new topic all the subscribers
+	 * 
+	 * @param newTopic
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@Override
 	public void advertise(Topic newTopic) throws UnknownHostException, IOException {
@@ -235,13 +237,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
-    /**
-     * makes the connection with server
-     *
-     * @param port port number of the server to connect with
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * makes the connection with server
+	 *
+	 * @param port port number of the server to connect with
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	public void connectToSocket(int port) throws UnknownHostException, IOException {
 
@@ -289,12 +291,12 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		}
 	}
 
-    /**
-     * The main function .
-     *
-     * @throws UnknownHostException
-     * @throws IOException
-     */
+	/**
+	 * The main function .
+	 *
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws UnknownHostException, IOException {
@@ -412,6 +414,24 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 					topic = src.next().toLowerCase();
 					System.out.println();
 
+					psa.listSubscribedTopics();
+					try {
+						for (Topic topic2 : subscribedTopics) {
+							if (topic2.getName().equalsIgnoreCase(topic)) {
+								System.out.println("You already subscribed to the topic '" + topic + "'");
+								flag = false;
+								break;
+							}
+						}
+					} catch (NullPointerException exception) {
+						
+					}
+
+					if (!flag) {
+						break;
+					}
+						
+
 					psa.getAllTopics();
 					for (Topic topic1 : topicList) {
 						if (topic1.getName().equalsIgnoreCase(topic)) {
@@ -471,6 +491,20 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 					break;
 				case 6:
 					psa.listSubscribedTopics();
+					try {
+						if (!subscribedTopics.isEmpty()) {
+							System.out.println("Subscribed Topics are: ");
+							for (Topic topic1 : subscribedTopics) {
+								System.out.println(topic1.getName());
+							}
+						} else {
+							System.out.println("You have not subscribed to any Topics");
+							break;
+						}
+					} catch (NullPointerException exception) {
+						System.out.println("You have not been subscribed to any topic");
+						break;
+					}
 					break;
 				case 7:
 					psa.getAllTopics();
