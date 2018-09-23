@@ -1,5 +1,9 @@
-
-//package impl;
+/**
+ * This is a client (publisher/ subscriber) class, where all the activities happen
+ *
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,7 +15,6 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-//import demo.*;
 
 public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
@@ -23,6 +26,16 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 	private static ArrayList<Topic> topicList;
 	private static ArrayList<Topic> subscribedTopics;
 	private Thread thread;
+
+    /**
+     *
+     * PubSubAgent constructor: First establishes connection to the server is established, then after receiving
+     * the new port number the connection is re-established with the ManageThread class.
+     *
+     * @param ipAddress the IP address of the server
+     * @throws UnknownHostException
+     * @throws IOException
+     */
 
 	public PubSubAgent(String ipAddress) throws UnknownHostException, IOException {
 
@@ -40,6 +53,14 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		thread.start();
 	}
 
+    /**
+     * to subscribe to a given topic
+     *
+     * @param topic instance of the topic
+     * @throws UnknownHostException
+     * @throws IOException
+     */
+
 	@Override
 	public void subscribe(Topic topic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
@@ -56,14 +77,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
-	@Override
-	public void subscribe(String keyword) throws UnknownHostException, IOException {
-		connectToSocket(serverPort);
-
-		disconnectFromSocket();
-
-	}
-
+    /**
+     * to unsubscribe from a given topic
+     *
+     * @param topic instance of the topic
+     * @throws UnknownHostException
+     * @throws IOException
+     */
 	@Override
 	public void unsubscribe(Topic topic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
@@ -79,6 +99,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		disconnectFromSocket();
 
 	}
+
+    /**
+     * to unsubscribe from all the subscribed topics
+     *
+     * @throws UnknownHostException
+     * @throws IOException
+     */
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -108,6 +135,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
+    /**
+     * lists all the subscribed for a particular subscriber
+     *
+     * @throws UnknownHostException
+     * @throws IOException
+     */
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void listSubscribedTopics() throws UnknownHostException, IOException {
@@ -125,6 +159,14 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 
 	}
 
+    /**
+     * to publish an event
+     *
+     * @param event instance of an event
+     * @throws UnknownHostException
+     * @throws IOException
+     */
+
 	@Override
 	public void publish(Event event) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
@@ -140,6 +182,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		disconnectFromSocket();
 
 	}
+
+    /**
+     * to get the list of all available topics
+     *
+     * @throws UnknownHostException
+     * @throws IOException
+     */
 
 	@SuppressWarnings("unchecked")
 	public void getAllTopics() throws UnknownHostException, IOException {
@@ -163,6 +212,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		}
 	}
 
+    /**
+     * to advertise a new topic all the subscribers
+     * @param newTopic
+     * @throws UnknownHostException
+     * @throws IOException
+     */
+
 	@Override
 	public void advertise(Topic newTopic) throws UnknownHostException, IOException {
 		connectToSocket(serverPort);
@@ -178,6 +234,14 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 		disconnectFromSocket();
 
 	}
+
+    /**
+     * makes the connection with server
+     *
+     * @param port port number of the server to connect with
+     * @throws UnknownHostException
+     * @throws IOException
+     */
 
 	public void connectToSocket(int port) throws UnknownHostException, IOException {
 
@@ -224,6 +288,13 @@ public class PubSubAgent implements Publisher, Subscriber, Runnable {
 					.println("Class Cast Exception in the while reading the input notification object from the server");
 		}
 	}
+
+    /**
+     * The main function .
+     *
+     * @throws UnknownHostException
+     * @throws IOException
+     */
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) throws UnknownHostException, IOException {

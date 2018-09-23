@@ -1,4 +1,9 @@
-//package demo;
+/**
+ * The Publisher Interface
+ * 
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.io.IOException;
 import java.net.UnknownHostException;

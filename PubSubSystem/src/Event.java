@@ -1,4 +1,9 @@
-//package demo;
+/**
+ * The Event Class
+ * 
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.io.Serializable;
 

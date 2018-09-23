@@ -1,4 +1,9 @@
-//package demo;
+/**
+ * The Subscriber Interface
+ * 
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -8,12 +13,6 @@ public interface Subscriber {
 	 * subscribe to a topic
 	 */
 	public void subscribe(Topic topic) throws UnknownHostException, IOException;
-	
-	/*
-	 * subscribe to a topic with matching keywords
-	 */
-	public void subscribe(String keyword) throws UnknownHostException, IOException;
-	
 	/*
 	 * unsubscribe from a topic 
 	 */

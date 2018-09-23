@@ -1,4 +1,9 @@
-//package demo;
+/**
+ * The Topic Class
+ * 
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.io.Serializable;
 import java.util.List;

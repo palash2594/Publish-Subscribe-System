@@ -1,5 +1,9 @@
-
-//package impl;
+/**
+ * This class interacts with clients on behalf of the server, with the available ports.
+ * 
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,7 +12,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-//import demo.*;
 
 public class ManageThread implements Runnable {
 
@@ -16,11 +19,22 @@ public class ManageThread implements Runnable {
 	private ServerSocket serverSocket;
 	private ObjectOutputStream outputStream;
 	private ObjectInputStream inputStream;
+	
+	/**
+	 * Class constructor
+	 * 
+	 * @param eventManager
+	 * @param serverSocket
+	 */
 
 	public ManageThread(EventManager eventManager, ServerSocket serverSocket) {
 		this.eventManager = eventManager;
 		this.serverSocket = serverSocket;
 	}
+	
+	/**
+	 * starts the thread and listens to clients requests
+	 */
 
 	@Override
 	public void run() {

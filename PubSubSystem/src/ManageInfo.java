@@ -1,36 +1,56 @@
-
-//package impl;
+/**
+ * Class to store all the data including list of - subscribers, publishers, topics, events
+ *
+ * @author Maha Krishnan Krishnan
+ * @author Palash Jain
+ */
 
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-//import demo.*;
 
 public class ManageInfo {
 
-	// All Clients
+	// List of all the Clients, which came online and has pending messages
 	public ArrayList<InetAddress> addClients = new ArrayList<>();
 
-	// Topics
+	// List of all the Topics available
 	public ArrayList<Topic> topics = new ArrayList<>();
+	// List of all the topics yet to be advertised to all the clients
 	public ArrayList<Topic> tempTopics = new ArrayList<>();
 
-	// Events
+	// List of all the Events yet to be delivered
 	public ArrayList<Event> events = new ArrayList<>();
 
-	// Subscribers
+	// List of all the Subscribers
 	public ArrayList<InetAddress> subscribers = new ArrayList<>();
+	// Map for subscribers where a list of subscribed topics is maintained for all the subscribers 
 	public HashMap<InetAddress, ArrayList<Topic>> topicListForSubscriber = new HashMap<>();
+	// Map where list of subscribers is maintained for each topic
 	public HashMap<Topic, ArrayList<InetAddress>> subscriberForTopics = new HashMap<>();
-
+	
+	/**
+	 * to get the list of topics a subscriber has subscribed to.
+	 * 
+	 * @param subscriber
+	 * @return
+	 */
+	
 	public ArrayList<Topic> getSubscribedTopics(InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
 			return topicListForSubscriber.get(subscriber);
 		}
 		return null;
 	}
+	
+	/**
+	 * to add the topic in the corresponding subscriber's map
+	 * 
+	 * @param topic instance of the topic
+	 * @param subscriber IP address of the subscriber
+	 */
 
 	public void setSubscribedTopics(Topic topic, InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
@@ -43,6 +63,13 @@ public class ManageInfo {
 			topicListForSubscriber.put(subscriber, topics);
 		}
 	}
+	
+	/**
+	 * to add the subscriber in the corresponding topic's map
+	 *  
+	 * @param topic instance of the topic
+	 * @param subscriber IP address of the subscriber
+	 */
 
 	public void setSubscriberForTopics(Topic topic, InetAddress subscriber) {
 
@@ -64,6 +91,14 @@ public class ManageInfo {
 			subscriberForTopics.put(topic, ip);
 		}
 	}
+	
+	/**
+	 * to check if the given subscriber has subscriber for the given topic
+	 * 
+	 * @param topic instance of the topic
+	 * @param subscriber IP address of the subscriber
+	 * @return true if it has subscribed else no
+	 */
 
 	public boolean isTopicSubscriberSync(Topic topic, InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
@@ -76,6 +111,13 @@ public class ManageInfo {
 		}
 		return false;
 	}
+	
+	/**
+	 * to remove a particular topic for a subscriber
+	 * 
+	 * @param topic instance of the topic
+	 * @param subscriber IP address of the subscriber
+	 */
 
 	public void removeSubscribedTopics(Topic topic, InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
@@ -94,6 +136,13 @@ public class ManageInfo {
 			}
 		}
 	}
+	
+	/**
+	 * remove the subscriber from the topic map that corresponding topic
+	 * 
+	 * @param topic instance of the topic
+	 * @param subscriber IP address of the subscriber
+	 */
 
 	public void removeSubscriberFromTopics(Topic topic, InetAddress subscriber) {
 		ArrayList<InetAddress> ip = new ArrayList<>();
@@ -110,6 +159,13 @@ public class ManageInfo {
 			}
 		}
 	}
+	
+	/**
+	 * remove subscribed topics for a given subscriber
+	 * 
+	 * @param subscriber IP address of the subscriber
+	 * @return list of topics unsubscribed from
+	 */
 
 	public ArrayList<Topic> removeAllSubscribers(InetAddress subscriber) {
 
@@ -132,8 +188,10 @@ public class ManageInfo {
 		return topics;
 	}
 
-	// Buffer for events
+	// BUFFER for events
+	// Map used as a buffer, which stores if any user has a pending events to be delivered
 	public HashMap<InetAddress, ArrayList<Event>> hasEvents = new HashMap<>();
+	// List of subscribers if they have any pending events yet to be delivered 
 	public ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
 
 	public void setHasEvents(InetAddress subscriber, Event event) {
@@ -160,9 +218,10 @@ public class ManageInfo {
 		}
 	}
 	
-	// Buffer for topics
-	
+	// BUFFER for topic
+	// Map used as a buffer, which stores if any user has a pending topics to be delivered
 	public HashMap<InetAddress, ArrayList<Topic>> hasTopics = new HashMap<>();
+	// List of subscribers if they have any pending topics yet to be delivered 
 	public ArrayList<InetAddress> activeClients= new ArrayList<>();
 	
 	public void setHasTopics(InetAddress client, Topic topic) {
