@@ -34,15 +34,11 @@ public class EventManager implements Runnable {
 		runnableThreads = new Runnable[numThreads];
 		manageData = new ManageInfo();
 
-		for (int i = 0; i <= numThreads; i++) {
-			socketMap.put(i, new ServerSocket(7000 + i + 1));
-		}
-
 		for (int i = 0; i < numThreads; i++) {
+			socketMap.put(i, new ServerSocket(7000 + i + 1));
 			runnableThreads[i] = new ManageThread(this, socketMap.get(i));
 		}
 
-		System.out.println("Starts");
 		thread.start();
 	}
 
@@ -53,7 +49,7 @@ public class EventManager implements Runnable {
 		serverSocket = new ServerSocket(5000);
 		int i = 0;
 		while (true) {
-			System.out.println("Waiting for CLient request");
+			System.out.println("Waiting for Client request");
 			Socket clientSocket = serverSocket.accept();
 
 			System.out.println(
@@ -104,12 +100,14 @@ public class EventManager implements Runnable {
 	/*
 	 * add subscriber to the internal list
 	 */
-	public void addSubscriber(Topic topic, InetAddress subscriber) {
-		System.out.println(subscriber);
+	public String addSubscriber(Topic topic, InetAddress subscriber) {
+
 		synchronized (manageData) {
 			manageData.setSubscribedTopics(topic, subscriber);
 			manageData.setSubscriberForTopics(topic, subscriber);
 		}
+		
+		return "You have susbcribed to the topic '" + topic.getName() +"'";
 	}
 
 	public ArrayList<Topic> listSubscribedTopics(InetAddress subscriber) {
@@ -132,8 +130,6 @@ public class EventManager implements Runnable {
 			return true;
 		}
 	}
-//	manageData.removeHasEvents(activeSubscribers.get(0), eventsToSend.get(sendCount));
-	
 
 	public ArrayList<Topic> removeSubscriber(InetAddress unSubscriber) {
 		synchronized (manageData) {
@@ -309,10 +305,7 @@ public class EventManager implements Runnable {
 				}
 
 				int subscriberCount = 0;
-				System.out.println(subscribers.size());
 				while (subscriberCount < subscribers.size()) {
-					System.out.println("Sub size" + subscribers.size());
-					System.out.println("sub count" + subscriberCount);
 					try {
 						Socket socket = new Socket(subscribers.get(subscriberCount), port);
 						outputStream = new ObjectOutputStream(socket.getOutputStream());

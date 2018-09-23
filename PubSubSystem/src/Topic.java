@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Topic implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int id;
 	private List<String> keywords;
 	private String name;
@@ -31,4 +35,11 @@ public class Topic implements Serializable{
     public void setName(String name) {
         this.name = name;
     }
+
+	@Override
+	public String toString() {
+		return name;
+	}
+    
+    
 }

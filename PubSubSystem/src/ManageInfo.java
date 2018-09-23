@@ -11,23 +11,22 @@ import java.util.Map;
 public class ManageInfo {
 
 	// All Clients
-	public static ArrayList<InetAddress> addClients = new ArrayList<>();
+	public ArrayList<InetAddress> addClients = new ArrayList<>();
 
 	// Topics
-	public static ArrayList<Topic> topics = new ArrayList<>();
-	public static ArrayList<Topic> tempTopics = new ArrayList<>();
+	public ArrayList<Topic> topics = new ArrayList<>();
+	public ArrayList<Topic> tempTopics = new ArrayList<>();
 
 	// Events
-	public static ArrayList<Event> events = new ArrayList<>();
+	public ArrayList<Event> events = new ArrayList<>();
 
 	// Subscribers
-	public static ArrayList<InetAddress> subscribers = new ArrayList<>();
-	public static HashMap<InetAddress, ArrayList<Topic>> topicListForSubscriber = new HashMap<>();
-	public static HashMap<Topic, ArrayList<InetAddress>> subscriberForTopics = new HashMap<>();
+	public ArrayList<InetAddress> subscribers = new ArrayList<>();
+	public HashMap<InetAddress, ArrayList<Topic>> topicListForSubscriber = new HashMap<>();
+	public HashMap<Topic, ArrayList<InetAddress>> subscriberForTopics = new HashMap<>();
 
 	public ArrayList<Topic> getSubscribedTopics(InetAddress subscriber) {
 		if (topicListForSubscriber.containsKey(subscriber)) {
-			System.out.println("Inside getSubscribedTopics::" + subscriber);
 			return topicListForSubscriber.get(subscriber);
 		}
 		return null;
@@ -134,8 +133,8 @@ public class ManageInfo {
 	}
 
 	// Buffer for events
-	public static HashMap<InetAddress, ArrayList<Event>> hasEvents = new HashMap<>();
-	public static ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
+	public HashMap<InetAddress, ArrayList<Event>> hasEvents = new HashMap<>();
+	public ArrayList<InetAddress> activeSubscribers = new ArrayList<>();
 
 	public void setHasEvents(InetAddress subscriber, Event event) {
 		if (hasEvents.containsKey(subscriber)) {
@@ -163,8 +162,8 @@ public class ManageInfo {
 	
 	// Buffer for topics
 	
-	public static HashMap<InetAddress, ArrayList<Topic>> hasTopics = new HashMap<>();
-	public static ArrayList<InetAddress> activeClients= new ArrayList<>();
+	public HashMap<InetAddress, ArrayList<Topic>> hasTopics = new HashMap<>();
+	public ArrayList<InetAddress> activeClients= new ArrayList<>();
 	
 	public void setHasTopics(InetAddress client, Topic topic) {
 		if (hasTopics.containsKey(client)) {
@@ -188,79 +187,4 @@ public class ManageInfo {
 			}
 		}
 	}
-
-	// =========================================================================================================================================================
-//	// TO DO
-//	Map<String, ArrayList<String>> keywords = new HashMap<>();
-//
-//	
-//
-//	ArrayList<InetAddress> publishers = new ArrayList<>();
-//
-//	Map<InetAddress, ArrayList<Event>> hasEvents = new HashMap<>();
-//
-//	Map<Event, Integer> pendingEventsCount = new HashMap<>();
-//
-//	public ArrayList<String> getKeywords(String keyword) {
-//		return keywords.get(keyword);
-//	}
-//
-//	public void setKeywords(String keyword, String topic) {
-//
-//		if (keywords.containsKey(keyword)) {
-//			ArrayList<String> topicsFor = keywords.get(keyword);
-//			topicsFor.add(topic);
-//			keywords.put(keyword, topicsFor);
-//		} else {
-//			ArrayList<String> topicsFor = new ArrayList<>();
-//			topicsFor.add(topic);
-//			keywords.put(keyword, topicsFor);
-//		}
-//	}
-//
-//	public ArrayList<Event> getEvents() {
-//		return events;
-//	}
-//
-//	public void setEvents(Event event) {
-//		this.events.add(event);
-//	}
-//
-//	public ArrayList<InetAddress> getSubscribers() {
-//		return subscribers;
-//	}
-//
-//	public void setSubscribers(InetAddress subscriber) {
-//		this.subscribers.add(subscriber);
-//	}
-//
-//	public List<InetAddress> getPublishers() {
-//		return publishers;
-//	}
-//
-//	public void setPublishers(InetAddress publisher) {
-//		this.publishers.add(publisher);
-//	}
-//
-//	// DOubt
-//	public Map<Topic, ArrayList<InetAddress>> getSubscriberForTopics() {
-//		return subscriberForTopics;
-//	}
-//
-//	public Map<InetAddress, ArrayList<Event>> getHasEvents() {
-//		return hasEvents;
-//	}
-//
-//	public void setHasEvents(Map<InetAddress, ArrayList<Event>> hasEvents) {
-//		this.hasEvents = hasEvents;
-//	}
-//
-//	public Map<Event, Integer> getPendingEventsCount() {
-//		return pendingEventsCount;
-//	}
-//
-//	public void setPendingEventsCount(Map<Event, Integer> pendingEventsCount) {
-//		this.pendingEventsCount = pendingEventsCount;
-//	}
-
 }

@@ -1,9 +1,12 @@
 //package demo;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class Event implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int id;
 	private Topic topic;
 	private String title;

@@ -39,9 +39,8 @@ public class ManageThread implements Runnable {
 					outputStream.writeObject(eventManager.addTopic((Topic) inputStream.readObject()));
 					break;
 				case "Subscribe":
-					eventManager.addSubscriber((Topic) inputStream.readObject(),
-							(InetAddress) inputStream.readObject());
-					outputStream.writeObject("You have susbcribed to the topic");
+					outputStream.writeObject(eventManager.addSubscriber((Topic) inputStream.readObject(),
+							(InetAddress) inputStream.readObject()));
 					break;
 				case "AllTopics":
 					outputStream.writeObject(eventManager.getAllTopics());
